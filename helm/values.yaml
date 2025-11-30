@@ -1,0 +1,39 @@
+replicaCount: 1
+
+vote:
+  image:
+    repository: voting-app-ruby-vote
+    tag: latest
+    pullPolicy: IfNotPresent
+
+result:
+  image:
+    repository: voting-app-ruby-result
+    tag: latest
+    pullPolicy: IfNotPresent
+
+worker:
+  image:
+    repository: voting-app-ruby-worker
+    tag: latest
+    pullPolicy: IfNotPresent
+
+redis:
+  image: redis:alpine
+  host: voting-app-ruby-redis
+  port: 6379
+
+postgres:
+  image: postgres:15
+  db: votes
+  user: postgres
+  password: postgres
+
+service:
+  type: NodePort
+  votePort: 80
+  resultPort: 80
+
+env:
+  - name: REDIS_HOST
+    value: voting-app-ruby-redis
