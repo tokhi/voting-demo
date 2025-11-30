@@ -1,0 +1,134 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "voting-app-ruby.fullname" . }}-vote
+  labels:
+    app.kubernetes.io/name: {{ include "voting-app-ruby.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: vote
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "voting-app-ruby.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: vote
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "voting-app-ruby.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: vote
+    spec:
+      containers:
+      - name: vote
+        image: "{{ .Values.vote.image.repository }}:{{ .Values.vote.image.tag | default "latest" }}"
+        imagePullPolicy: {{ .Values.vote.image.pullPolicy | default "IfNotPresent" }}
+        ports:
+        - containerPort: 80
+        env:
+        - name: REDIS_HOST
+          value: {{ .Values.redis.host | quote }}
+        - name: REDIS_PORT
+          value: {{ .Values.redis.port | quote }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "voting-app-ruby.fullname" . }}-result
+  labels:
+    app.kubernetes.io/name: {{ include "voting-app-ruby.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: result
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "voting-app-ruby.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: result
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "voting-app-ruby.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: result
+    spec:
+      initContainers:
+      - name: init-db
+        image: postgres:15
+        command: ["sh", "-c"]
+        args:
+          - psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -c "CREATE TABLE IF NOT EXISTS vote_counts (option VARCHAR(50) PRIMARY KEY, count INTEGER DEFAULT 0);"
+        env:
+        - name: POSTGRES_HOST
+          value: "{{ .Values.postgres.serviceName | default "voting-app-ruby-postgres" }}"
+        - name: POSTGRES_USER
+          value: "{{ .Values.postgres.user }}"
+        - name: POSTGRES_PASSWORD
+          value: "{{ .Values.postgres.password }}"
+        - name: POSTGRES_DB
+          value: "{{ .Values.postgres.db }}"
+        - name: PGPASSWORD
+          value: "{{ .Values.postgres.password }}"
+      containers:
+      - name: result
+        image: "{{ .Values.result.image.repository }}:{{ .Values.result.image.tag | default "latest" }}"
+        imagePullPolicy: {{ .Values.result.image.pullPolicy | default "IfNotPresent" }}
+        ports:
+        - containerPort: 80
+        env:
+        - name: POSTGRES_HOST
+          value: "{{ .Values.postgres.serviceName | default "voting-app-ruby-postgres" }}"
+        - name: POSTGRES_PORT
+          value: "{{ .Values.postgres.port | default "5432" }}"
+        - name: POSTGRES_DB
+          value: "{{ .Values.postgres.db }}"
+        - name: POSTGRES_USER
+          value: "{{ .Values.postgres.user }}"
+        - name: POSTGRES_PASSWORD
+          value: "{{ .Values.postgres.password }}"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "voting-app-ruby.fullname" . }}-worker
+  labels:
+    app.kubernetes.io/name: {{ include "voting-app-ruby.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "voting-app-ruby.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "voting-app-ruby.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: worker
+    spec:
+      containers:
+      - name: worker
+        image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag | default "latest" }}"
+        imagePullPolicy: {{ .Values.worker.image.pullPolicy | default "IfNotPresent" }}
+        env:
+        - name: REDIS_HOST
+          value: {{ .Values.redis.host | quote }}
+        - name: REDIS_PORT
+          value: {{ .Values.redis.port | quote }}
+        - name: POSTGRES_HOST
+          value: "{{ .Values.postgres.serviceName | default "voting-app-ruby-postgres" }}"
+        - name: POSTGRES_PORT
+          value: "{{ .Values.postgres.port | default "5432" }}"
+        - name: POSTGRES_DB
+          value: "{{ .Values.postgres.db }}"
+        - name: POSTGRES_USER
+          value: "{{ .Values.postgres.user }}"
+        - name: POSTGRES_PASSWORD
+          value: "{{ .Values.postgres.password }}"
