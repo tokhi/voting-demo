@@ -2,6 +2,8 @@
 
 This repository contains a simple Ruby voting application with three components: `vote`, `result`, and `worker`. The app uses **Redis** for caching votes and **Postgres** for storing results.
 
+Visual diagram:
+[here](https://excalidraw.com/#json=BuxC3zOl6qmn_4fxYyVNg,1qQrTO8vCGE_CgeJTRtI4A)
 ---
 
 ## Docker Compose Workflow
