@@ -1,0 +1,7 @@
+<h1>Voting Results</h1>
+<ul>
+  <% results.each do |row| %>
+    <li><%= row['option'] %>: <%= row['count'] %> votes</li>
+  <% end %>
+</ul>
+<a href='/'>Back to Vote</a>  <!-- Link to vote service in prod -->
