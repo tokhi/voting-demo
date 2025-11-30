@@ -1,0 +1,38 @@
+services:
+  vote:
+    build: ./apps/vote
+    image: voting-app-ruby-vote:latest  
+    ports:
+      - "8080:80"
+    depends_on:
+      - redis
+
+  result:
+    build: ./apps/result
+    image: voting-app-ruby-result:latest 
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+
+  worker:
+    build: ./apps/worker
+    image: voting-app-ruby-worker:latest 
+    depends_on:
+      - redis
+      - db
+
+  redis:
+    image: redis:alpine
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: votes
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
