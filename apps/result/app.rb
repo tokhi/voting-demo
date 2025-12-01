@@ -32,19 +32,3 @@ get '/' do
   rows = db.exec('SELECT option, count FROM vote_counts ORDER BY count DESC')
   erb :results, locals: { rows: rows }
 end
-
-__END__
-@@ results
-<!doctype html>
-<html>
-<head><title>Results</title></head>
-<body style="text-align:center; font-family: Arial; margin-top: 80px;">
-  <h1 style="font-size: 4em;">Live Results</h1>
-  <ul style="list-style: none; font-size: 3em;">
-    <% rows.each do |r| %>
-      <li><b><%= r['option'] %></b> — <%= r['count'] || 0 %> votes</li>
-    <% end %>
-  </ul>
-  <br><br><a href="http://localhost:8080" style="font-size: 1.5em;">← Vote Again</a>
-</body>
-</html>
