@@ -1,4 +1,4 @@
-# Voting App - DevOps Quick Guide
+# Voting App - DevOps Quick Guide - Terraform
 
 This repository contains a simple Ruby voting application with three components: `vote`, `result`, and `worker`. The app uses **Redis** for caching votes and **Postgres** for storing results.
 
@@ -17,7 +17,11 @@ docker compose down -v
 # Build and start all containers
 docker compose up --build
 
+# initialize terraform working directory
+terraform init
 
+# execute the plan
+terraform apply -auto-approve
 
 # Minikube / Kubernetes Workflow
 
